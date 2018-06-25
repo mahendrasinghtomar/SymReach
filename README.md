@@ -10,5 +10,6 @@ Please edit makefile (in every example folder) to adjust directory path.
 Libraries to be linked: -lboost_filesystem -lboost_iostreams -lboost_system -lginac -lcln
 
 If compiler else than g++ then please edit ReachableSet2cpp.h: line 1637
-    system("g++ -shared func_from_file.cpp -o func_from_file.so");
+        
+       system("g++ -shared func_from_file.cpp -o func_from_file.so");
 to adjust compiler.
