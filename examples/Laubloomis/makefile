@@ -5,7 +5,7 @@ CXXFLAGS 		= -Wall -Wextra -O3
 GINACINC = ../../../../Downloads/cplusplus_packages/ginac-1.7.4/ginac
 EIGENINC = ../../../../Downloads/cplusplus_packages/eigen-eigen-5a0156e40feb
 LIBSINCLUDE = C:/cygwin/lib
-#-----------------
+#-----------------<
 
 ROOT		= ../..
 
@@ -15,20 +15,26 @@ LIBINC = -L$(GINACINC)/.libs -L$(GINACINC) -L$(LIBSINCLUDE)
 
 LIBS = -lboost_filesystem -lboost_iostreams -lboost_system -lginac -lcln
 
-.PHONY: laubloomis 
-
 TARGET = laubloomis 
+
+.PHONY: $(TARGET) 
 
 all: $(TARGET) run
 
-laubloomis.o: laubloomis.cpp
+clear: 
+	clear
+	clear
+
+call: clear all
+
+laubloomis.o: laubloomis.cpp $(ROOT)/src/ReachableSet2cpp.h
 	$(CC) $(INC) $(CXXFLAGS) laubloomis.cpp -c
 	
 laubloomis: laubloomis.o laubloomis.cpp
-	$(CC) $(LIBINC) -o laubloomis ./laubloomis.o $(LIBS) 
+	$(CC) $(LIBINC) -o $(TARGET) ./laubloomis.o $(LIBS) 
 
 run: 
-	./laubloomis
+	./$(TARGET)
 
 clean:
-	rm laubloomis 
+	rm $(TARGET) datastorage.txt func_from_file.cpp func_from_file.so laubloomis.o
