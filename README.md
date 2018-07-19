@@ -1,4 +1,4 @@
-# SymReach2
+# SymReach
 Additionally Requires:
 
     Gnuplot: http://gnuplot.info/
