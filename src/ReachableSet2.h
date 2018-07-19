@@ -81,13 +81,13 @@ namespace mstom {
         MatrixXld lb;
         MatrixXld ub;
         intervalMatrix(){};
-        zonotope operator * ( const zonotope& Z);
+        zonotope operator * ( const zonotope& Z) const;
 
-        intervalMatrix operator * (double a);
+        intervalMatrix operator * (double a) const;
 
-        intervalMatrix operator + (const MatrixXld& M);
+        intervalMatrix operator + (const MatrixXld& M) const;
 
-        intervalMatrix operator + (const intervalMatrix& Mi);
+        intervalMatrix operator + (const intervalMatrix& Mi) const ;
     };
 	
     zonotope convexHull(const zonotope& Z1, const Eigen::MatrixXd& eAr);
@@ -96,7 +96,7 @@ namespace mstom {
 
     zonotope convexHull(std::vector<zonotope>& stora);
 
-    double factorial(double n);
+    double factorial(const double& n);
 
     double compute_epsilon(const Eigen::MatrixXd& A, const double& r, int& p);
 
@@ -106,78 +106,78 @@ namespace mstom {
 
     void sum_matrix(double M1[], double M2[], unsigned int m, unsigned int n);
 
-    void matrix_exponential(MatrixXld& A, double r, int& p, intervalMatrix& Er, std::vector<MatrixXld>& Apower);
+    void matrix_exponential(const MatrixXld& A, const double r, const int& p, intervalMatrix& Er, std::vector<MatrixXld>& Apower);
 
-    intervalMatrix compute_F(const int& p, const double& r, const MatrixXld& A, intervalMatrix& Er, std::vector<MatrixXld>& Apower);
+    intervalMatrix compute_F(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower);
 
-    intervalMatrix compute_F_tilde(const int& p, const double& r, const MatrixXld& A, intervalMatrix& Er, int isOriginContained, std::vector<MatrixXld> Apower);
+    intervalMatrix compute_F_tilde(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower, int isOriginContained);
 
-    intervalMatrix compute_Data_interm(intervalMatrix& Er, double r, int p, const MatrixXld& A, std::vector<MatrixXld>& Apower);
+    intervalMatrix compute_Data_interm(const intervalMatrix& Er, const double& r, const int& p, const MatrixXld& A, const std::vector<MatrixXld>& Apower);
 
     intervalMatrix IntervalHull(const zonotope& Z);
 
-    zonotope project(zonotope& Z, int a, int b);
+    zonotope project(const zonotope& Z, const int& a, const int& b);
 
-	std::vector<zonotope> project(std::vector<zonotope>& Zv, int a, int b);
+	std::vector<zonotope> project(const std::vector<zonotope>& Zv, const int& a, const int& b);
 
 	template <typename T>
     std::vector<size_t> sort_indexes(const T &v) ;
 
-    zonotope deletezeros(zonotope Z);
+    zonotope deletezeros(const zonotope& Z);
 
-    void vertices(zonotope& Z, Eigen::MatrixXd& p2);
+    void vertices(const zonotope& Z, Eigen::MatrixXd& p2);
 
-	std::vector<std::pair<double, double>> vertices_pair(zonotope Z);
+	std::vector<std::pair<double, double>> vertices_pair(const zonotope& Z);
 
-	Eigen::MatrixXd verticesH(zonotope Z);
+	Eigen::MatrixXd verticesH(const zonotope& Z);
         // vertices for H-representation; same as vertices(), difference is only in the return type
 
-    void H_rep(zonotope& Z, Eigen::VectorXd& M);
+    void H_rep(const zonotope& Z, Eigen::VectorXd& M);
         // H representation for 2D zonotope
 
-    bool isOriginInZonotope(zonotope& Z);
+    bool isOriginInZonotope(const zonotope& Z);
         // only for 2D zonotopes
 
-    void plot(zonotope& Z, int a1, int a2);
+    void plot(const zonotope& Z, const int& a1, const int& a2);
 
-	void plot(std::vector<zonotope> Zv, int a1, int a2);
+	void plot(const std::vector<zonotope>& Zv, const int& a1, const int& a2);
         // a1, a2 : dimensions to plot
 
-    void plotfilled(std::vector<zonotope> Zv, int a1, int a2);
+    void plotfilled(const std::vector<zonotope>& Zv, const int& a1, const int& a2);
         // a1, a2 : dimensions to plot
 
-	std::vector<double> project(std::vector<mstom::zonotope> Zv, int a);
+	std::vector<double> project(const std::vector<mstom::zonotope>& Zv, const int& a);
         // project on to the dimension a(begins from 1); returns the end points of the line segment
 
-	std::vector<std::pair<double, double>> vertices(std::vector<double> ve, double tau, double k);
+	std::vector<std::pair<double, double>> vertices(const std::vector<double>& ve, const double& tau, const double& k);
 		// for plot w.r.t. time. Returns vertices of a rectangle of time width tau
 		//k = the time instant
 
-	void plotfilled(std::vector<std::vector<mstom::zonotope>> Ztp, int a1, double tau);
+	void plotfilled(const std::vector<std::vector<mstom::zonotope>>& Ztp, const int& a1, const double& tau);
         // a1 : dimension to plot w.r.t. time
 
-    void plot(std::vector<zonotope> Zv, int a1, int a2, bool tb);
+    void plot(const std::vector<zonotope>& Zv, const int& a1, const int& a2, bool tb);
         // a1, a2 : dimensions to plot
 
-    void plot(std::vector<double> L);
+    void plot(const std::vector<double>& L);
 
-    void plotstore(std::vector<zonotope>& PlotStorage, zonotope Z);
+    void plotstore(std::vector<zonotope>& PlotStorage, const zonotope& Z);
 
-    void plotstore(std::vector<zonotope>& PlotStorage, std::vector<zonotope> Zv);
+    void plotstore(std::vector<zonotope>& PlotStorage, const std::vector<zonotope>& Zv);
 
-    void printVector(std::vector<double> v);
+    void printVector(const std::vector<double>& v);
 
-	void reduce(zonotope& Z, int morder);
+	void reduce(zonotope& Z, const int& morder);
 		// reduces Z to order = morder, if it is greater than that
 
-	void reduce(std::vector<zonotope>& Zv, int morder);
+	void reduce(std::vector<zonotope>& Zv, const int& morder);
 
-	void wfile(zonotope& Z, std::string str1, int flag);
+	void wfile(const zonotope& Z, const std::string& str1, const int& flag);
 		// Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, " ", "\n", "", " ", "[", "]");
 		//Eigen::IOFormat LightFmt(Eigen::StreamPrecision, 0, " ", "\n", "", " ", "[", "]");
 		//flag: 1(write), 2(append)
 
-	void wfile(std::vector<std::vector<mstom::zonotope>>& Zti);
+	void wfile(const std::vector<std::vector<mstom::zonotope>>& Zti);
 		// to plot with MATLAB
 
 	void wfile_gnuplot(std::vector<std::vector<mstom::zonotope>>& Zti);
@@ -207,7 +207,7 @@ void computeJacobian_Lu_array2(vnodelp::interval xin[], Fu u[], const int dim, i
 template<typename T2>
 void compute_J_abs_max(const mstom::intervalMatrix& iM, Eigen::MatrixXd J_abs_max[], T2 u);
 
-void compute_H(const mstom::intervalMatrix& iM, std::vector<vnodelp::iMatrix>& H, Eigen::VectorXd uin);
+// void compute_H(const mstom::intervalMatrix& iM, std::vector<vnodelp::iMatrix>& H, Eigen::VectorXd uin);
 
 Eigen::MatrixXd pMatrix_to_MatrixXd(vnodelp::pMatrix pM);
 
@@ -215,9 +215,9 @@ Eigen::VectorXd pV_to_V(vnodelp::pVector pV);
 
 mstom::zonotope compute_quad(mstom::zonotope Z, std::vector<Eigen::MatrixXd> H_mid);
 
-Eigen::VectorXd maxAbs(mstom::intervalMatrix IH);
+Eigen::VectorXd maxAbs(const mstom::intervalMatrix& IH);
 
-Eigen::VectorXd compute_L_Hat1(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd uin);
+// Eigen::VectorXd compute_L_Hat1(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd uin);
 
 Eigen::VectorXd compute_L_Hat3(std::vector<vnodelp::interval> Kprime, std::vector<vnodelp::interval> uin);
     // global L_hat computation
@@ -225,9 +225,9 @@ Eigen::VectorXd compute_L_Hat3(std::vector<vnodelp::interval> Kprime, std::vecto
 mstom::zonotope compute_L_Hat2(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd u);
     // 2nd L_hat computation method (less interval arithmatic)
 
-mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_interm, mstom::zonotope& Rhomt, Eigen::VectorXd x_bar,
-		Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, mstom::intervalMatrix& F_tilde,
-		Eigen::VectorXd& L_max, int& nr, double& perfInd);
+// mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_interm, mstom::zonotope& Rhomt, Eigen::VectorXd x_bar,
+		// Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, mstom::intervalMatrix& F_tilde,
+		// Eigen::VectorXd& L_max, int& nr, double& perfInd);
 	// nr tells if split needed
 	// updates: nr, perfInd, Rhomt
 
@@ -266,18 +266,18 @@ void LuOverSS_array2(Lugbx& lower_left, Lugbx& upper_right, Lugbu& uin, int& dim
     // without eigen::matrix
     // using arrays
 
-template<class CL>
-double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, double r, int& p, Eigen::VectorXd L_max,
-		std::vector<mstom::zonotope>& stora, std::vector<mstom::zonotope>& Zti_stora, int& count1, int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
-		int recur, int morder);
+// template<class CL>
+// double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, double r, int& p, Eigen::VectorXd L_max,
+		// std::vector<mstom::zonotope>& stora, std::vector<mstom::zonotope>& Zti_stora, int& count1, int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
+		// int recur, int morder);
 
-template<class CL>
-std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Eigen::VectorXd u,
-				int state_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
-				int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
-				int morder, std::vector<mstom::zonotope>& Zti);
+// template<class CL>
+// std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Eigen::VectorXd u,
+				// int state_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
+				// int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
+				// int morder, std::vector<mstom::zonotope>& Zti);
 
-int ReachableSet(int dim, int dimInput, double tau, double rr[], double x[], double uu[], double finaltime, int LinErrorMethod, double l_bar, int morder, int taylorTerms);
+// int ReachableSet(const int dim, const int dimInput, double tau, double rr[], double x[], double uu[], int no_of_steps, int LinErrorMethod, double l_bar, int morder, int taylorTerms, std::vector<std::vector<mstom::zonotope>>& Zti, mstom::zonotope& Z0);
 
 
 
