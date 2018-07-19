@@ -82,11 +82,10 @@ template<typename Tx, typename Tu >
 Tx funcLj_system(Tx x, Tu u, Tx xx);
 
 extern std::vector<symbol> xs;	// x_symbol
+extern std::vector<symbol> us;
 extern std::vector<ex> f;
-
-// extern Eigen::VectorXd L_hat_previous;  // abstraction.hh: compute_gb2
-extern int PERFINDS;
-extern int ExampleMst;
+// extern int PERFINDS;
+int PERFINDS = 1;
 
 // typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXld;
 // typedef Eigen::Matrix<vnodelp::interval,Eigen::Dynamic,Eigen::Dynamic> MatrixXint;
@@ -94,10 +93,16 @@ extern int ExampleMst;
 Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, " ", "\n", "", " ", "[", "]");
 Eigen::IOFormat LightFmt(Eigen::StreamPrecision, 0, " ", "\n", "", " ", "[", "]");
 
-std::basic_stringstream<char>& operator << (std::basic_stringstream<char>& coutte, vnodelp::interval intd){
-coutte << "[" << intd.lower() << ", " << intd.upper() << "]" << "\n";
-return coutte;
+// std::basic_stringstream<char>& operator << (std::basic_stringstream<char>& coutte, vnodelp::interval intd){
+// coutte << "[" << intd.lower() << ", " << intd.upper() << "]" << "\n";
+// return coutte;
+// }
+
+std::ostream& operator <<(std::ostream& os, vnodelp::interval& intv){
+	os << "[" << intv.lower() << ", " << intv.upper() << "]";
+	return os;
 }
+
 
 namespace mstom {
 
@@ -227,19 +232,19 @@ namespace mstom {
         return Ztemp;
     }
 
-    // vector<interval> to zonotope
-    mstom::zonotope vecIntToZono(std::vector<vnodelp::interval> Kprime){
-        unsigned int dim = Kprime.size();
-        Eigen::VectorXd c(dim), lb(dim), ub(dim);
-        for(unsigned int i=0;i<dim;i++)
-        {
-            lb(i) = vnodelp::inf(Kprime[i]);
-            ub(i) = vnodelp::sup(Kprime[i]);
-        }
-        c = (lb + ub) * 0.5;
-        mstom:: zonotope Z(c, ub-lb);
-        return Z;
-    }
+    // // vector<interval> to zonotope
+    // mstom::zonotope vecIntToZono(std::vector<vnodelp::interval> Kprime){
+        // unsigned int dim = Kprime.size();
+        // Eigen::VectorXd c(dim), lb(dim), ub(dim);
+        // for(unsigned int i=0;i<dim;i++)
+        // {
+            // lb(i) = vnodelp::inf(Kprime[i]);
+            // ub(i) = vnodelp::sup(Kprime[i]);
+        // }
+        // c = (lb + ub) * 0.5;
+        // mstom:: zonotope Z(c, ub-lb);
+        // return Z;
+    // }
 
     // class intervalMatrix{
     // public:
@@ -304,7 +309,7 @@ namespace mstom {
 	
 	// intervalMatrix::intervalMatrix(){};
 
-	zonotope intervalMatrix::operator * ( const zonotope& Z){    //interval matrix map for zonotope
+	zonotope intervalMatrix::operator * ( const zonotope& Z) const{    //interval matrix map for zonotope
             unsigned int row =  Z.generators.rows();
             unsigned int col =  Z.generators.cols();
             zonotope Ztemp;
@@ -321,7 +326,7 @@ namespace mstom {
             return Ztemp;
         }
 
-    intervalMatrix intervalMatrix::operator * (double a){
+    intervalMatrix intervalMatrix::operator * (double a) const {
             intervalMatrix Mitemp;
             MatrixXld temp1 = lb*a;
             MatrixXld temp2 = ub*a;
@@ -330,14 +335,14 @@ namespace mstom {
             return Mitemp;
         }
 
-    intervalMatrix intervalMatrix::operator + (const MatrixXld& M){
+    intervalMatrix intervalMatrix::operator + (const MatrixXld& M) const {
             intervalMatrix Mitemp;
             Mitemp.lb = lb + M;
             Mitemp.ub = ub + M;
             return Mitemp;
         }
 
-    intervalMatrix intervalMatrix::operator + (const intervalMatrix& Mi){
+    intervalMatrix intervalMatrix::operator + (const intervalMatrix& Mi) const {
             intervalMatrix Mitemp;
             Mitemp.lb = lb + Mi.lb;
             Mitemp.ub = ub + Mi.ub;
@@ -399,7 +404,7 @@ namespace mstom {
 
 
 
-    double factorial(double n){
+    double factorial(const double& n){
         return (n==1 || n==0) ? 1 : factorial(n-1) * n;
     }
 
@@ -453,8 +458,8 @@ namespace mstom {
                 M1[i*n+j] = M1[i*n+j] + M2[i*n+j];
     }
 
-    void matrix_exponential(MatrixXld& A, double r, int& p, intervalMatrix& Er, std::vector<MatrixXld>& Apower){
-        // Apower updated
+    void matrix_exponential(const MatrixXld& A, const double r, const int& p, intervalMatrix& Er, std::vector<MatrixXld>& Apower){
+        // Apower and Er updated
         unsigned int state_dim = A.rows();
 		std::vector<MatrixXld> Apower_abs(p+1);
 		MatrixXld M = MatrixXld::Identity(state_dim,state_dim);
@@ -478,7 +483,7 @@ namespace mstom {
         return ;
     }
 
-    intervalMatrix compute_F(const int& p, const double& r, const MatrixXld& A, intervalMatrix& Er, std::vector<MatrixXld>& Apower){
+    intervalMatrix compute_F(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower){
         unsigned int state_dim = A.rows();
         intervalMatrix Asum;
         Asum.ub = MatrixXld::Zero(state_dim, state_dim);
@@ -516,7 +521,7 @@ namespace mstom {
         return Asum;
     }
 
-    intervalMatrix compute_F_tilde(const int& p, const double& r, const MatrixXld& A, intervalMatrix& Er, int isOriginContained, std::vector<MatrixXld> Apower){
+    intervalMatrix compute_F_tilde(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower, int isOriginContained=0){
         unsigned int state_dim = A.rows();
         intervalMatrix Asum;
         Asum.ub = MatrixXld::Zero(state_dim,state_dim);
@@ -558,7 +563,7 @@ namespace mstom {
          return Asum;
     }
 
-    intervalMatrix compute_Data_interm(intervalMatrix& Er, double r, int p, const MatrixXld& A, std::vector<MatrixXld>& Apower){
+    intervalMatrix compute_Data_interm(const intervalMatrix& Er, const double& r, const int& p, const MatrixXld& A, const std::vector<MatrixXld>& Apower){
         unsigned int state_dim = A.rows();
 		MatrixXld Asum = r * MatrixXld::Identity(state_dim,state_dim);
 		//int fac = 2;
@@ -579,7 +584,7 @@ namespace mstom {
         return iM;
     }
 
-    zonotope project(zonotope& Z, int a, int b){
+    zonotope project(const zonotope& Z, const int& a, const int& b){
         // project on to the dimensions a and b
         zonotope Zp;
         Eigen::Vector2d c;
@@ -593,7 +598,7 @@ namespace mstom {
         return Zp;
     }
 
-	std::vector<zonotope> project(std::vector<zonotope>& Zv, int a, int b){
+	std::vector<zonotope> project(const std::vector<zonotope>& Zv, const int& a, const int& b){
 		unsigned int num = Zv.size();
 		std::vector<zonotope> Z(num);
 		for(unsigned int i=0;i<num;i++)
@@ -616,7 +621,7 @@ namespace mstom {
         return idx;
     }
 
-    zonotope deletezeros(zonotope Z){
+    zonotope deletezeros(const zonotope& Z){
         // delete zero generators
         zonotope Zd;
         Eigen::MatrixXd vtemp = Z.generators.cwiseAbs().colwise().sum();
@@ -636,10 +641,10 @@ namespace mstom {
         return Zd;
     }
 
-    void vertices(zonotope& Z, Eigen::MatrixXd& p2){
-        std::vector<std::pair<double, double>> v;
-        Eigen::VectorXd c = Z.centre;
-        Eigen::MatrixXd g = Z.generators;
+    void vertices(const zonotope& Z, Eigen::MatrixXd& p2){
+        // std::vector<std::pair<double, double>> v;
+        const Eigen::VectorXd& c = Z.centre;
+        const Eigen::MatrixXd& g = Z.generators;
         int n = g.cols();   // number of generators
         double xmax = g.row(0).cwiseAbs().sum();
         double ymax = g.row(1).cwiseAbs().sum();
@@ -675,7 +680,7 @@ namespace mstom {
         return ;
     }
 
-	std::vector<std::pair<double, double>> vertices_pair(zonotope Z){
+	std::vector<std::pair<double, double>> vertices_pair(const zonotope& Z){
 		int n = Z.generators.cols();   // number of generators
 		int p2cols = (n+1)*2;
 		Eigen::MatrixXd p2(2, p2cols);
@@ -686,10 +691,10 @@ namespace mstom {
 		return v;
 	}
 
-	Eigen::MatrixXd verticesH(zonotope Z){
+	Eigen::MatrixXd verticesH(const zonotope& Z){
         // vertices for H-representation; same as vertices(), difference is only in the return type
-        Eigen::VectorXd c = Z.centre;
-        Eigen::MatrixXd g = Z.generators;
+        const Eigen::VectorXd& c = Z.centre;
+        const Eigen::MatrixXd& g = Z.generators;
         int n = g.cols();   // number of generators
         double xmax = g.row(0).cwiseAbs().sum();
         double ymax = g.row(1).cwiseAbs().sum();
@@ -726,7 +731,7 @@ namespace mstom {
         return p2;
     }
 
-    void H_rep(zonotope& Z, Eigen::VectorXd& M){
+    void H_rep(const zonotope& Z, Eigen::VectorXd& M){
         // H representation for 2D zonotope
         if(Z.centre.rows() > 2)
             std::cout << "Please use a 2D zonotope\n";
@@ -756,7 +761,7 @@ namespace mstom {
         M = Ma;
     }
 
-    bool isOriginInZonotope(zonotope& Z){
+    bool isOriginInZonotope(const zonotope& Z){
         // only for 2D zonotopes
         Eigen::VectorXd M;
         H_rep(Z,M); // H representation; last row of M stores d; h.x < d inside the Z
@@ -765,7 +770,7 @@ namespace mstom {
         return chk;
     }
 
-    void plot(zonotope& Z, int a1, int a2){
+    void plot(const zonotope& Z, const int& a1, const int& a2){
         Gnuplot gp;
         //gp << "set terminal lua\n";
         std::vector<std::pair<double, double>> v = vertices_pair(project(Z, a1, a2));
@@ -775,7 +780,7 @@ namespace mstom {
         gp.send1d(v);
     }
 
-	void plot(std::vector<zonotope> Zv, int a1, int a2){
+	void plot(const std::vector<zonotope>& Zv, const int& a1, const int& a2){
         // a1, a2 : dimensions to plot
         Gnuplot gp;
         gp << "set grid\n";
@@ -803,7 +808,7 @@ namespace mstom {
         }
     }
 
-    void plotfilled(std::vector<zonotope> Zv, int a1, int a2){
+    void plotfilled(const std::vector<zonotope>& Zv, const int& a1, const int& a2){
         // a1, a2 : dimensions to plot
         Gnuplot gp;
         gp << "set grid\n";
@@ -834,7 +839,7 @@ namespace mstom {
         }
     }
 
-	std::vector<double> project(std::vector<mstom::zonotope> Zv, int a){
+	std::vector<double> project(const std::vector<mstom::zonotope>& Zv, const int& a){
         // project on to the dimension a(begins from 1); returns the end points of the line segment
         //int dim = Zv[0].centre.rows();
 		std::vector<double> v(2), vs(2);
@@ -861,7 +866,7 @@ namespace mstom {
         return v;
     }
 
-	std::vector<std::pair<double, double>> vertices(std::vector<double> ve, double tau, double k){
+	std::vector<std::pair<double, double>> vertices(const std::vector<double>& ve, const double& tau, const double& k){
 		// for plot w.r.t. time. Returns vertices of a rectangle of time width tau
 		//k = the time instant
 		// double v1 = Z.centre + Z.generators.cwiseAbs().sum();
@@ -874,7 +879,7 @@ namespace mstom {
 		return v;
 	}
 
-	void plotfilled(std::vector<std::vector<mstom::zonotope>> Ztp, int a1, double tau){
+	void plotfilled(const std::vector<std::vector<mstom::zonotope>>& Ztp, const int& a1, const double& tau){
         // a1 : dimension to plot w.r.t. time
         Gnuplot gp;
         gp << "set grid\n";
@@ -905,7 +910,7 @@ namespace mstom {
         }
     }
 
-    void plot(std::vector<zonotope> Zv, int a1, int a2, bool tb){
+    void plot(const std::vector<zonotope>& Zv, const int& a1, const int& a2, bool tb){
         // a1, a2 : dimensions to plot
         Gnuplot gp;
         gp << "set grid\n";
@@ -929,34 +934,34 @@ namespace mstom {
         }
     }
 
-    void plot(std::vector<double> L){
+    void plot(const std::vector<double>& L){
         Gnuplot gp;
         gp << "set output 'my_graph.png'\n";
         gp << "plot '-' with points\n";
         gp.send1d(L);
     }
 
-    void plotstore(std::vector<zonotope>& PlotStorage, zonotope Z){
+    void plotstore(std::vector<zonotope>& PlotStorage, const zonotope& Z){
         PlotStorage.push_back(Z);
     }
 
-    void plotstore(std::vector<zonotope>& PlotStorage, std::vector<zonotope> Zv){
+    void plotstore(std::vector<zonotope>& PlotStorage, const std::vector<zonotope>& Zv){
         for(unsigned int i=0;i<Zv.size();i++)
         {
             PlotStorage.push_back(Zv[i]);
         }
     }
 
-    void printVector(std::vector<double> v){
+    void printVector(const std::vector<double>& v){
         std::cout<< "The vector is: \n";
         for(unsigned int i=0;i<v.size();i++)
             std::cout << v[i] << ", ";
         std::cout << std::endl;
     }
 
-std::vector<zonotope> PlotStorage2;
+// std::vector<zonotope> PlotStorage2;
 
-	void reduce(zonotope& Z, int morder){
+	void reduce(zonotope& Z, const int& morder){
 		// reduces Z to order = morder, if it is greater than that
 		int dim = Z.centre.rows();
 		if(Z.generators.cols() <= (morder * dim))
@@ -977,14 +982,14 @@ std::vector<zonotope> PlotStorage2;
 		return;
 	}
 
-	void reduce(std::vector<zonotope>& Zv, int morder){
+	void reduce(std::vector<zonotope>& Zv, const int& morder){
 		for(unsigned int i=0;i<Zv.size();i++)
 		{
 			reduce(Zv[i], morder);
 		}
 	}
 
-	void wfile(zonotope& Z, std::string str1, int flag){
+	void wfile(const zonotope& Z, const std::string& str1, const int& flag){
 		// Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, " ", "\n", "", " ", "[", "]");
 		//Eigen::IOFormat LightFmt(Eigen::StreamPrecision, 0, " ", "\n", "", " ", "[", "]");
 		//flag: 1(write), 2(append)
@@ -1005,7 +1010,7 @@ std::vector<zonotope> PlotStorage2;
 		return;
 	}
 
-	void wfile(std::vector<std::vector<mstom::zonotope>>& Zti){
+	void wfile(const std::vector<std::vector<mstom::zonotope>>& Zti){
 		// to plot with MATLAB
 		int flag;	// 1(write), 2(append)
 		for(unsigned int i=0;i<Zti.size();i++)
@@ -1043,7 +1048,7 @@ std::vector<zonotope> PlotStorage2;
 	}
 
 	void wfile_time(std::vector<std::vector<mstom::zonotope>>& Zti, int a1, double tau){
-		// to plot one dimension vs time with MATLAB
+		// to plot one dimension vs time (with MATLAB)
 		int flag;	// 1(write), 2(append)
 		for(double i=0;i<Zti.size();i++)
 		{
@@ -1073,7 +1078,7 @@ std::vector<zonotope> PlotStorage2;
 //#############################################################################
 // Derivative Hessian
 
-std::vector<mstom::zonotope> PlotStorage;
+// std::vector<mstom::zonotope> PlotStorage;
 int ZorDeltaZ;  // 1 if Z, 0 if deltaZ
 
 // template<typename T2>
@@ -1158,34 +1163,30 @@ mstom::zonotope compute_quad(mstom::zonotope Z, std::vector<Eigen::MatrixXd> H_m
     return mstom::deletezeros(Zq);
 }
 
-Eigen::VectorXd maxAbs(mstom::intervalMatrix IH){
+Eigen::VectorXd maxAbs(const mstom::intervalMatrix& IH){
     Eigen::MatrixXd Mtemp2(IH.lb.rows(),2);
     Mtemp2.col(0) = IH.lb;
     Mtemp2.col(1) = IH.ub;
     return Mtemp2.cwiseAbs().rowwise().maxCoeff();
 }
 
-std::ostream& operator <<(std::ostream& os, vnodelp::interval& intv){
-	os << "[" << intv.lower() << ", " << intv.upper() << "]";
-	return os;
-}
-
-void ginac_function_to_file(ex *e, const int& dim){
+void ginac_function_to_file(ex *e, const int& dimHess, const int& dim){
 	std::ofstream myfile;
 	myfile.open("func_from_file.cpp");
 	myfile << "#include <iostream>\n"
 	<< "#include <vector>\n"
 	<< "#include <boost/numeric/interval.hpp>\n\n" 
 	<< "using namespace boost::numeric;\n"
-	<< "typedef boost::numeric::interval<double> intervalD;\n"
+	<< "using namespace interval_lib;\n"
+	<< "typedef boost::numeric::interval<double, policies<save_state<rounded_transc_std<double> >, checking_base<double> > > intervalD;\n"
 	<< "typedef std::vector<intervalD> vec_interval;\n\n"
-	<< "extern \"C\" void func_from_file(const vec_interval& x, vec_interval& Hessi){\n";
+	<< "extern \"C\" void func_from_file(const vec_interval& x, const vec_interval& u, vec_interval& Hessi){\n";
 	int i2;
 	for(int i=0; i<dim; i++)
-		for(int j=0;j<dim;j++)
-			for(int k=0;k<dim;k++)
+		for(int j=0;j<dimHess;j++)
+			for(int k=0;k<dimHess;k++)
 				{
-					i2 = i*dim*dim + j*dim + k;
+					i2 = i*dimHess*dimHess + j*dimHess + k;
 					if(!e[i2].is_zero())
 						myfile << "\tHessi[" << i2 << "] = " << csrc_double << e[i2] << ";\n";
 				}
@@ -1194,66 +1195,73 @@ void ginac_function_to_file(ex *e, const int& dim){
 	return;
 	}
 
-typedef void (*func_from_file_t)(const std::vector<vnodelp::interval>& , std::vector<vnodelp::interval>& );
+typedef void (*func_from_file_t)(const std::vector<vnodelp::interval>& , const std::vector<vnodelp::interval>& , std::vector<vnodelp::interval>& );
 
 func_from_file_t func_from_file;
 
-void compute_H(const mstom::intervalMatrix& iM, std::vector<vnodelp::iMatrix>& H, Eigen::VectorXd uin)
+void compute_H(const mstom::intervalMatrix& iM, std::vector<vnodelp::iMatrix>& H, const mstom::intervalMatrix& iMu, const int& dimInput)
 {
     int nm = iM.lb.rows(); // state_dimension
-	std::vector<vnodelp::interval> x(nm);
+	int dimHess = nm + dimInput;
+	std::vector<vnodelp::interval> x(dimHess), u(dimInput);
     for(int j=0;j<nm;j++)
     {
         x[j] = vnodelp::interval(iM.lb(j,0), iM.ub(j,0));
     }
-	std::vector<vnodelp::interval> Hessian(nm*nm*nm, 0);
-	func_from_file(x, Hessian);
+	for(int j=0;j<dimInput;j++)
+		u[j] = vnodelp::interval(iMu.lb(j,0), iMu.ub(j,0));
+	std::vector<vnodelp::interval> Hessian(nm*dimHess*dimHess, 0);
+	func_from_file(x, u, Hessian);
     for(int i=0;i<nm;i++)
     {
-        for(int j=0;j<nm;j++)
-            for(int k=0;k<nm;k++)
+        for(int j=0;j<dimHess;j++)
+            for(int k=0;k<dimHess;k++)
             {
-                H[i](j,k) = Hessian[i*nm*nm + j*nm + k];
+                H[i](j,k) = Hessian[i*dimHess*dimHess + j*dimHess + k];
             }
 	}
 }
 
 
-Eigen::VectorXd compute_L_Hat1(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd uin){
+Eigen::VectorXd compute_L_Hat1(const mstom::zonotope& Rtotal1, const Eigen::VectorXd& x_bar, const int& state_dim, const int& input_dim, const Eigen::VectorXd& uin, const mstom::zonotope& delta_u){
+	mstom::intervalMatrix totalIntu;
+	int dimHess = input_dim + state_dim;
 	mstom::intervalMatrix RIH = mstom::IntervalHull(Rtotal1);
 	mstom::intervalMatrix totalInt = RIH + x_bar;
     Eigen::VectorXd L_hat(state_dim);
     {
-        Eigen::VectorXd Gamma;
+        Eigen::VectorXd Gamma(dimHess);
         if (ZorDeltaZ)  //1 if Z, 0 if deltaZ;
 		{
-            Gamma = maxAbs(RIH);
+            Gamma.head(state_dim) = maxAbs(RIH);
 			//std::cout<<"gamma:\n" << Gamma << std::endl;
 			//Gamma = (Rtotal1.centre - x_bar).cwiseAbs() + Rtotal1.generators.cwiseAbs().rowwise().sum();
         }
 		else
             Gamma = (Rtotal1.centre).cwiseAbs() + Rtotal1.generators.cwiseAbs().rowwise().sum();
+		if(input_dim != 0)
+		{
+			mstom::intervalMatrix duIH = mstom::IntervalHull(delta_u);
+			totalIntu = duIH + uin;
+			Gamma.tail(input_dim) = duIH.ub ; //maxAbs(duIH);
+
+		}
        // Eigen::MatrixXd J_abs_max[state_dim];
         //compute_J_abs_max(totalInt, J_abs_max, uin);
-		std::vector<MatrixXint> H(state_dim);
-		MatrixXint Htemp(state_dim, state_dim);
-		std::vector<vnodelp::iMatrix> Hvno(state_dim, vnodelp::iMatrix::Zero(state_dim,state_dim));
-		compute_H(totalInt, Hvno, uin);
-		for(int i=0;i<state_dim;i++)
-		{
-			for(int j=0;j<state_dim;j++)
-				for(int k=0;k<state_dim;k++)
-				{
-					Htemp(j,k) = Hvno[i](j,k);
-				}
-			H[i] = Htemp;
-		}
-		MatrixXint error(state_dim,1), Gammaint(state_dim,1);
-		for(int i=0;i<state_dim;i++)
+		std::vector<vnodelp::iMatrix> H(state_dim, vnodelp::iMatrix::Zero(dimHess,dimHess));
+		MatrixXint Htemp(dimHess, dimHess);
+		compute_H(totalInt, H, totalIntu, input_dim);
+
+		MatrixXint error(state_dim,1), Gammaint(dimHess,1);
+		for(int i=0;i<dimHess;i++)
 			Gammaint(i,0) = vnodelp::interval(Gamma(i));
         for(int i=0; i<state_dim;i++)
         {
-            //L_hat(i) = 0.5 * Gamma.transpose() * J_abs_max[i] * Gamma;
+			// error(i,0) = 0.5 * (Gammaint.transpose()* H[i] * Gammaint);
+			
+			
+			
+			
 			MatrixXint ertemp;
 			vnodelp::interval sctemp(0,0);
 			ertemp = (H[i] * Gammaint);
@@ -1276,7 +1284,7 @@ mstom::zonotope compute_L_Hat2(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, i
     mstom::intervalMatrix RIH = mstom::IntervalHull(Rtotal1);
     Eigen::VectorXd L_hat(state_dim);
          std::vector<vnodelp::iMatrix> H;
-        compute_H(RIH, H, u);
+        // compute_H(RIH, H, u);
         int dim = H[1].size();
         std::vector<Eigen::MatrixXd> H_mid, H_rad;
         Eigen::MatrixXd Mtemp(dim,dim);
@@ -1307,12 +1315,12 @@ mstom::zonotope compute_L_Hat2(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, i
     return error;
 }
 
-mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_interm, mstom::zonotope& Rhomt, Eigen::VectorXd x_bar,
+mstom::zonotope compute_Rerr_bar(int state_dim, int input_dim, mstom::intervalMatrix& Data_interm, mstom::zonotope& Rhomt, Eigen::VectorXd x_bar,
 		Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, mstom::intervalMatrix& F_tilde,
-		Eigen::VectorXd& L_max, int& nr, double& perfInd){
+		Eigen::VectorXd& L_max, int& nr, double& perfInd, mstom::zonotope& delta_u){
 	// nr tells if split needed
 	// updates: nr, perfInd, Rhomt
-	mstom::zonotope F_tilde_f_bar = F_tilde * mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
+	// mstom::zonotope F_tilde_f_bar = F_tilde * mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
 	mstom::zonotope Rhom;
     Eigen::VectorXd appliedError;
 
@@ -1335,7 +1343,7 @@ mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_inte
         RerrAE = Data_interm * Verror;
         Rtotal1 = (RerrAE + Rhom);
         if(LinErrorMethod == 1)
-            trueError = compute_L_Hat1(Rtotal1, x_bar, state_dim,u);
+            trueError = compute_L_Hat1(Rtotal1, x_bar, state_dim, input_dim, u, delta_u);
         else
         {
         	 ErrorZonotope = compute_L_Hat2(Rtotal1, x_bar, state_dim,u);// maxAbs(IH(error zonotope))
@@ -1350,7 +1358,8 @@ mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_inte
         	nr = -2;
         	break;
         }
-        appliedError = 1.02 * trueError;
+        // appliedError = 1.02 * trueError;
+		appliedError = 1.02 * trueError;
     }
     L_hat = trueError;
    // L_hat_previous = trueError;
@@ -1410,11 +1419,11 @@ void splitz2(const mstom::zonotope& Z0in, mstom::zonotope& Z01, mstom::zonotope&
 
 
 
-double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, double r, int& p, Eigen::VectorXd L_max,
+double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, int input_dim, double r, int& p, Eigen::VectorXd L_max,
 		std::vector<mstom::zonotope>& stora, std::vector<mstom::zonotope>& Zti_stora, int& count1, int LinErrorMethod, const Eigen::VectorXd& ss_eta,
-		int recur, int morder, ex *JacobianB, ex *HessianB)
+		int recur, int morder, ex *JacobianB, ex *HessianB, double ru[],  ex *JacobianBu)
 {
-    TicToc timehat;
+    // TicToc timehat;
     count1++;
     Eigen::VectorXd c = Z0.centre;
     // std::vector<double> cv(state_dim) ;  // to pass c as c++ vector to func
@@ -1424,7 +1433,7 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 	
 	// vnodelp::interval
 
-    MatrixXld A(state_dim,state_dim);
+    MatrixXld A(state_dim,state_dim), B(state_dim, input_dim);
 
     // double A_array[state_dim*state_dim];
 
@@ -1437,10 +1446,19 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 	exmap mb;
 	for(int i=0;i<state_dim;i++)
 		mb[xs[i]] = x_bar(i);
+	for(int i=0;i<input_dim;i++)
+		mb[us[i]] = u(i);
 	for(int i=0;i<state_dim;i++)
+	{
 		for(int j=0;j<state_dim;j++)
 			A(i,j) = ex_to<numeric>(JacobianB[i*state_dim+j].subs(mb)).to_double();	
-
+		for(int j=0;j<input_dim;j++)
+			B(i,j) = ex_to<numeric>(JacobianBu[i*input_dim+j].subs(mb)).to_double();
+	}
+	Eigen::VectorXd ru_vec(input_dim);
+	for(int i=0;i<input_dim;i++)
+		ru_vec(i) = ru[i];
+	mstom::zonotope delta_u;
     Eigen::VectorXd f_bar(state_dim);
     f_bar = funcLj_system(x_bar, u, f_bar);
     mstom::zonotope Rtotal_tp;
@@ -1456,7 +1474,7 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
     mstom::intervalMatrix Er;   //E(r)
     mstom::intervalMatrix Data_interm;  //(Aˆ-1)*(exp(Ar) - I)
     //double epsilone = mstom::compute_epsilon(A,r,p);
-    int isOriginContained = 0;
+    // int isOriginContained = 0;
     //    Ar_powers_fac; // pow(A*r,i)/factorial(i)
 
     //double bound = mstom::p_adjust_Er_bound(A,r,p,epsilone);
@@ -1465,18 +1483,26 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 
     mstom::matrix_exponential(A, r, p, Er, Apower);  //updates Er, Apower
     mstom::intervalMatrix F = mstom::compute_F(p, r, A, Er, Apower);
-    mstom::intervalMatrix F_tilde = mstom::compute_F_tilde(p,r,A,Er,isOriginContained, Apower);
+    mstom::intervalMatrix F_tilde = mstom::compute_F_tilde(p,r,A,Er, Apower);
     mstom::zonotope F_tilde_f_bar = F_tilde * mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
 
     // Data_interm = (Aˆ-1)*(exp(Ar) - I)
     Data_interm = compute_Data_interm(Er, r, p, A, Apower);
 
     mstom::zonotope Z0delta = Z0 + mstom::zonotope(-x_bar,Eigen::VectorXd::Zero(A.rows()));
-    mstom::zonotope Rtrans = Data_interm * mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
+	mstom::zonotope Bdelta_uPf_bar;
+	if(input_dim == 0)
+		Bdelta_uPf_bar = mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
+	else
+	{
+		delta_u = mstom::zonotope(Eigen::VectorXd::Zero(input_dim), 2*ru_vec);
+		Bdelta_uPf_bar = ((B*delta_u) + f_bar);	// B * delta_u + f_bar
+	}
+	mstom::zonotope Rtrans = Data_interm * Bdelta_uPf_bar;
     mstom::zonotope Rhom_tp = (A*r).exp() * Z0delta + Rtrans ;
 
     mstom::zonotope Rtotal;
-	mstom::zonotope Rhom = mstom::convexHull(Z0delta, Rhom_tp) + F * Z0delta + F_tilde * mstom::zonotope(f_bar, Eigen::VectorXd::Zero(state_dim));
+	mstom::zonotope Rhom = mstom::convexHull(Z0delta, Rhom_tp) + F * Z0delta + F_tilde * Bdelta_uPf_bar;
 
 	mstom::reduce(Rhom, morder);
 	mstom::reduce(Rhom_tp, morder);
@@ -1487,7 +1513,7 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
     int nr = -1;	// nr = -1 (empty), -2 (split needed)
 	double perfInd;
 
-    RV = compute_Rerr_bar(state_dim, Data_interm, Rhom, x_bar, f_bar, u, L_hat,LinErrorMethod, F_tilde, L_max, nr, perfInd);  // Rerr_bar; L_hat, Rhom updated in the call
+    RV = compute_Rerr_bar(state_dim, input_dim, Data_interm, Rhom, x_bar, f_bar, u, L_hat,LinErrorMethod, F_tilde, L_max, nr, perfInd, delta_u);  // Rerr_bar; L_hat, Rhom updated in the call
 
     Rtotal_tp = Rhom_tp + RV  + x_bar;
     Rtotal = Rhom;
@@ -1502,6 +1528,7 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 		// std::cout << "stora.size()=" << stora.size() << "\n";
 		// std::cout << "Zti_stora.size()=" << Zti_stora.size() << "\n";
     }
+	
 	// if(recur == 1)
 	// {
 		// std::cout << "L_hat = " ;
@@ -1509,6 +1536,7 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 			// std::cout << L_hat(i) << ", ";
 		// std::cout << std::endl;
 	// }
+	
     mstom::zonotope Z01, Z02;
     if(nr == -2 && recur == 1) // split needed
     {
@@ -1532,12 +1560,12 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 			// splitz(Z0, Zsplit1[i], Zsplit2[i], i);	// split along state_dim
 			splitz2(Z0, Zsplit1[i], Zsplit2[i], i); // split along ith generator
 			double perftemp;
-			perftemp = one_iteration(Zsplit1[i], u, state_dim, r, p, L_max, split_stora1[i], split_Zti1[i],
-									count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB);
+			perftemp = one_iteration(Zsplit1[i], u, state_dim, input_dim, r, p, L_max, split_stora1[i], split_Zti1[i],
+									count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB, ru, JacobianBu);
 			if(PERFINDS==2)
 			{
-				perftemp2[i] = one_iteration(Zsplit2[i], u, state_dim, r, p, L_max, split_stora2[i], split_Zti2[i],
-											count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB);
+				perftemp2[i] = one_iteration(Zsplit2[i], u, state_dim, input_dim, r, p, L_max, split_stora2[i], split_Zti2[i],
+											count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB, ru, JacobianBu);
 				perftemp = perftemp * perftemp2[i];
 			}
 			perfInd_split[i] = perftemp;
@@ -1580,15 +1608,15 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 			if(PERFINDS==1)
 			{
 			std::vector<mstom::zonotope> split_sto2, split_Ztio2;
-			one_iteration(Z02, u, state_dim, r, p, L_max, split_sto2, split_Ztio2, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB);
+			one_iteration(Z02, u, state_dim, input_dim, r, p, L_max, split_sto2, split_Ztio2, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
 			stora.insert(stora.end(), split_sto2.begin(), split_sto2.end());
 			Zti_stora.insert(Zti_stora.end(), split_Ztio2.begin(), split_Ztio2.end());
 			}
 		}
 		else
 		{
-			one_iteration(Z01, u, state_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB);
-			one_iteration(Z02, u, state_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB);
+			one_iteration(Z01, u, state_dim, input_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
+			one_iteration(Z02, u, state_dim, input_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
 		}
     }
 
@@ -1596,9 +1624,9 @@ double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, doubl
 }
 
 std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Eigen::VectorXd u,
-				int state_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
+				int state_dim, int input_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
 				int LinErrorMethod, const Eigen::VectorXd& ss_eta,
-				int morder, std::vector<mstom::zonotope>& Zti, ex *JacobianB, ex *HessianB)
+				int morder, std::vector<mstom::zonotope>& Zti, ex *JacobianB, ex *HessianB, double ru[],  ex *JacobianBu)
 {
 	std::vector<mstom::zonotope> Zoutput, Ztemp;
 	for(unsigned int i=0;i<Z0.size();i++)
@@ -1606,7 +1634,7 @@ std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Ei
 		int recur = 1;	// 1 (keep on iterating for reachable set), 0 (return perfInd, no further splits)
 		std::vector<mstom::zonotope> stora;
 		std::vector<mstom::zonotope> Zti_stora;
-		one_iteration(Z0[i],u,state_dim,r,p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, recur, morder, JacobianB, HessianB);	// reachable sets returned in stora
+		one_iteration(Z0[i],u,state_dim, input_dim, r,p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, recur, morder, JacobianB, HessianB, ru, JacobianBu);	// reachable sets returned in stora
 		if(i==0)
 		{
 			Zoutput = stora;
@@ -1622,18 +1650,42 @@ std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Ei
 	return Zoutput;
 }
 
-int ReachableSet(const int dim, int dimInput, double tau, double rr[], double x[], double uu[], double finaltime, int LinErrorMethod, double l_bar, int morder, int taylorTerms)
+int ReachableSet(const int dim, const int dimInput, double tau, double rr[], double x[], double ru[], double uu[], int no_of_steps, int LinErrorMethod, double l_bar, int morder, int taylorTerms, 
+std::vector<std::vector<mstom::zonotope>>& Zti, mstom::zonotope& Z0)
 {
 	ex *JacobianB = new ex[dim*dim];
-	ex *HessianB = new ex[dim*dim*dim];
 	for(int i=0;i<dim;i++)
 		for(int j=0;j<dim;j++)
 			JacobianB[i*dim+j] = f[i].diff(xs[j]);
+	ex *JacobianBu;
+	if(dimInput != 0)
+	{
+		JacobianBu = new ex[dim*dimInput];	// Bu 	(n x m)
+		for(int i=0;i<dim;i++)
+			for(int j=0;j<dimInput;j++)
+				JacobianBu[i*dimInput+j] = f[i].diff(us[j]);
+	}
+	const int dimHess(dim+dimInput);	// Hessian dimension z = [x;u]
+	
+	ex *JacobianHtemp; // 
+	if(dimInput == 0)
+		JacobianHtemp = JacobianB;
+	else
+	{
+		for(int i=0;i<dimInput;i++)
+			xs.push_back(us[i]);
+		// Now xs = zs
+		JacobianHtemp = new ex[dim*dimHess];
+		for(int i=0;i<dim;i++)
+			for(int j=0;j<dim;j++)
+				JacobianHtemp[i*dimHess+j] = f[i].diff(xs[j]);
+	}
+	ex *HessianB = new ex[dim*dimHess*dimHess];
 	for(int i=0;i<dim;i++)
-		for(int j=0;j<dim;j++)
-			for(int k=0;k<dim;k++)
-				HessianB[i*dim*dim + j*dim + k] = JacobianB[i*dim+j].diff(xs[k]);
-	ginac_function_to_file(HessianB, dim);
+		for(int j=0;j<dimHess;j++)
+			for(int k=0;k<dimHess;k++)
+				HessianB[i*dimHess*dimHess + j*dimHess + k] = JacobianHtemp[i*dimHess+j].diff(xs[k]);
+	ginac_function_to_file(HessianB, dimHess, dim);
 	system("g++ -shared func_from_file.cpp -o func_from_file.so");
 	
 	using std::cout;
@@ -1676,34 +1728,30 @@ int ReachableSet(const int dim, int dimInput, double tau, double rr[], double x[
     for(int i=0;i<input_dim;i++)
         u(i) = uu[i];
 
-    mstom::zonotope Z0(c,ss_eta);
+    Z0 = mstom::zonotope(c,ss_eta);
 
     std::vector<mstom::zonotope> Zn;
     Zn.push_back(Z0);
-	int no_of_steps = finaltime/tau;
-	no_of_steps = (no_of_steps != finaltime/tau) ? ((finaltime/tau)+1) : (finaltime/tau);
-	std::vector<std::vector<mstom::zonotope>> Zti(no_of_steps);
+	// int no_of_steps = finaltime/tau;
+	// no_of_steps = (no_of_steps != finaltime/tau) ? ((finaltime/tau)+1) : (finaltime/tau);
+	// std::vector<std::vector<mstom::zonotope>> Zti(no_of_steps);
     std::vector<std::vector<mstom::zonotope>> Ztp(no_of_steps);
    // Ztp[0] = Zn;
-    std::cout << "r, finaltime, no of steps = " << r << ","
-    		<< finaltime << "," << no_of_steps << std::endl;
-
-	TicToc reachtime;
-	reachtime.tic();
+    // std::cout << "r, finaltime, no of steps = " << r << ","
+    		// << finaltime << "," << no_of_steps << std::endl;
 
     for(int i=0;i<no_of_steps;i++)
     {
         int count1 = 0;
-        Zn = one_iteration_s(Zn, u, state_dim, r, p, L_max, count1,
-							LinErrorMethod, ss_eta, morder, Zti[i], JacobianB, HessianB);
+        Zn = one_iteration_s(Zn, u, state_dim, input_dim, r, p, L_max, count1,
+							LinErrorMethod, ss_eta, morder, Zti[i], JacobianB, HessianB, ru, JacobianBu);
 			Ztp[i] = Zn;
 
 		std::cout << "step = " << i+1 << ", time = " << (i+1)*r << std::endl;
      }
-	 reachtime.toc();
 
-    std::cout << "Ztp.size() = " << Ztp.size() << std::endl;
-    //for(int i=0;i<Ztp.size();i++)
+    // std::cout << "Ztp.size() = " << Ztp.size() << std::endl;
+    //for(int i=0;i<Ztp.size();i++)   
     //	plot(Ztp[i],1,2);
 //    char ask2 = 'y';
 //    while(ask2 == 'y')
@@ -1716,31 +1764,6 @@ int ReachableSet(const int dim, int dimInput, double tau, double rr[], double x[
 //    	std::cin >> ask2;
 //    }
 
-	if(ExampleMst == 3)	// Laubloomis
-	{
-		wfile_time(Zti, 4, tau); //dimension count starts from 1 (not 0)
-		std::cout << "File write finished" << std::endl;
-		plotfilled(Zti, 4, tau); //Don't store Z0 in Ztp; dimension count starts from 1 (not 0)
-	}
-	else
-	{
-		int plotorder = 3;
-		PlotStorage.clear();
-		mstom::reduce(Zti[0], plotorder);
-		PlotStorage = Zti[0];
-		for(unsigned int i=1;i<Zti.size();i++)
-		{
-			Zti[i] = project(Zti[i], 1, 2);	// now Zti has 2D zonotopes
-			mstom::reduce(Zti[i], plotorder);
-			PlotStorage.insert(PlotStorage.end(),Zti[i].begin(), Zti[i].end());
-		}
-		mstom::plotstore(PlotStorage, project(Z0, 1, 2));
-		// wfile(Zti);
-		//wfile_gnuplot(Zti);
-		std::cout << "File write finished" << std::endl;
-		plotfilled(PlotStorage, 1, 2);
-		// plot(PlotStorage, 1, 2);
-	}
 
 	/* char ask3 = 'y';
 	while(ask3 == 'y')
@@ -1754,6 +1777,11 @@ int ReachableSet(const int dim, int dimInput, double tau, double rr[], double x[
 	} */
 	dlclose(handle);
 	delete[] JacobianB;
+	if(dimInput != 0)
+	{
+		delete[] JacobianBu;
+		delete[] JacobianHtemp;
+	}
 	delete[] HessianB;
     return 0;
 }
