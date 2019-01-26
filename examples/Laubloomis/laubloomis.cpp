@@ -9,14 +9,12 @@
 #include "ReachableSet2cpp.h"
 #include <iostream>
 #include <array>
-#include <cmath>  
+#include <cmath>      
 
-using namespace GiNaC; 
-
-const int state_dim = 7;
+const int state_dim = 7;   
 const int input_dim = 0;
-template<typename Tx, typename Tu>
-Tx funcLj_system(Tx x, Tu u, Tx xx){
+template<typename Tx, typename Tu, typename Txx>
+Txx funcLj_system(Tx& x, Tu& u, Txx& xx){
     xx[0] = 1.4*x[2] - 0.9*x[0];
     xx[1] = 2.5*x[4] - 1.5*x[1];
 	xx[2] = 0.6*x[6] - 0.8*x[1]*x[2];
@@ -26,18 +24,10 @@ Tx funcLj_system(Tx x, Tu u, Tx xx){
 	xx[6] = 1.8*x[5] - 1.5*x[1]*x[6];
     return xx;
 }
-symbol x0("x[0]"), x1("x[1]"), x2("x[2]"), x3("x[3]"), x4("x[4]"), x5("x[5]"), x6("x[6]");
-std::vector<symbol> xs{x0, x1, x2, x3, x4, x5, x6};	// x_symbol
+GiNaC::symbol x0("x[0]"), x1("x[1]"), x2("x[2]"), x3("x[3]"), x4("x[4]"), x5("x[5]"), x6("x[6]");
+std::vector<GiNaC::symbol> xs{x0, x1, x2, x3, x4, x5, x6};	// x_symbol
 
-std::vector<symbol> us;
-
-std::vector<ex> f{1.4*xs[2] - 0.9*xs[0],
-					2.5*xs[4] - 1.5*xs[1],
-					0.6*xs[6] - 0.8*xs[1]*xs[2],
-					2 - 1.3*xs[2]*xs[3],
-					0.7*xs[0] - xs[3]*xs[4],
-					0.3*xs[0] - 3.1*xs[5],
-					1.8*xs[5] - 1.5*xs[1]*xs[6]};
+std::vector<GiNaC::symbol> us;
 
 
 int main() {
@@ -73,19 +63,19 @@ int main() {
 	}
 		int no_of_steps = finaltime/tau;
 		no_of_steps = (no_of_steps != finaltime/tau) ? ((finaltime/tau)+1) : (finaltime/tau);
-		std::vector<std::vector<mstom::zonotope>> Zti(no_of_steps);
-		mstom::zonotope Z0;
+		std::vector<std::vector<SymReach::zonotope>> Zti(no_of_steps);
+		SymReach::zonotope Z0;
 
 		TicToc reachtime; 
 		reachtime.tic();
-		ReachableSet(state_dim, input_dim, tau, r, x, ru, u, no_of_steps, 1, l_max, morder, taylorTerms, Zti, Z0);		
+        SymReach::ReachableSet(state_dim, input_dim, tau, r, x, ru, u, no_of_steps, 1, l_max, morder, taylorTerms, Zti, Z0);
 		reachtime.toc();
 
 		// Storing projection of Zti along dimension 4. Dimension count starts from 1 (not 0).
 		std::cout << "Writing File" << std::endl;
-		wfile_time(Zti, 4, tau); //
+		SymReach::wfile_time(Zti, 4, tau); //
 		std::cout << "Plotting" << std::endl;
-		plotfilled(Zti, 4, tau); // Plots the dimension 4 vs time
+		SymReach::plotfilled(Zti, 4, tau); // Plots the dimension 4 vs time
 
 		std::cout << "Do you want to try another tau and finaltime?(y,n):";
 		std::cin >> ask;

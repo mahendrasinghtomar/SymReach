@@ -1,9 +1,10 @@
 CC       	  = g++
-CXXFLAGS 		= -Wall -Wextra -O3
+# CXXFLAGS 		= -Wall -Wextra -O3
+CXXFLAGS 		= -O3
 
 # Please edit --->
-GINACINC = ../../../../Downloads/cplusplus_packages/ginac-1.7.4/ginac
-EIGENINC = ../../../../Downloads/cplusplus_packages/eigen-eigen-5a0156e40feb
+GINACINC = C:\Users\MahendraSinghTomar\Downloads\cplusplus_packages\ginac-1.7.4\ginac
+EIGENINC = C:\Users\MahendraSinghTomar\Downloads\cplusplus_packages\eigen-eigen-5a0156e40feb
 LIBSINCLUDE = C:/cygwin/lib
 #-----------------<
 
@@ -19,12 +20,18 @@ TARGET = vanderpol
 
 .PHONY: $(TARGET) 
 
-all: $(TARGET) run
+all: vanderpol.exe run
+
+clear:
+	clear
+	clear
+
+call: clear all
 
 vanderpol.o: vanderpol.cpp $(ROOT)/src/ReachableSet2cpp.h
 	$(CC) $(INC) $(CXXFLAGS) vanderpol.cpp -c
 	
-vanderpol: vanderpol.o vanderpol.cpp
+vanderpol.exe: vanderpol.o vanderpol.cpp
 	$(CC) $(LIBINC) -o $(TARGET) ./vanderpol.o $(LIBS) 
 
 run: 

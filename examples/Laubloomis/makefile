@@ -1,9 +1,10 @@
 CC       	  = g++
-CXXFLAGS 		= -Wall -Wextra -O3
+# CXXFLAGS 		= -Wall -Wextra -O3
+CXXFLAGS 		= -O3
 
 # Please edit --->
-GINACINC = ../../../../Downloads/cplusplus_packages/ginac-1.7.4/ginac
-EIGENINC = ../../../../Downloads/cplusplus_packages/eigen-eigen-5a0156e40feb
+GINACINC = C:\Users\MahendraSinghTomar\Downloads\cplusplus_packages\ginac-1.7.4\ginac
+EIGENINC = C:\Users\MahendraSinghTomar\Downloads\cplusplus_packages\eigen-eigen-5a0156e40feb
 LIBSINCLUDE = C:/cygwin/lib
 #-----------------<
 
@@ -19,7 +20,8 @@ TARGET = laubloomis
 
 .PHONY: $(TARGET) 
 
-all: $(TARGET) run
+#all: $(TARGET) run
+all: laubloomis.exe run
 
 clear: 
 	clear
@@ -30,7 +32,7 @@ call: clear all
 laubloomis.o: laubloomis.cpp $(ROOT)/src/ReachableSet2cpp.h
 	$(CC) $(INC) $(CXXFLAGS) laubloomis.cpp -c
 	
-laubloomis: laubloomis.o laubloomis.cpp
+laubloomis.exe: laubloomis.o laubloomis.cpp
 	$(CC) $(LIBINC) -o $(TARGET) ./laubloomis.o $(LIBS) 
 
 run: 

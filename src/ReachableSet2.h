@@ -30,7 +30,8 @@
     // struct is_convertible<boost::numeric::interval<S,P1>,boost::numeric::interval<S,P2> > ;
   // }
 // }
-namespace vnodelp{
+
+namespace SymReach{
 	typedef boost::numeric::interval<double> interval;
 
 	double sup(interval& I);
@@ -51,16 +52,13 @@ namespace vnodelp{
 
 	void rad(pVector& M, iMatrix iM);
 
-}
-
-// #include "systemFunction.cpp"
-
+    
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXld;
-typedef Eigen::Matrix<vnodelp::interval,Eigen::Dynamic,Eigen::Dynamic> MatrixXint;
+//typedef Eigen::Matrix<SymReach::interval,Eigen::Dynamic,Eigen::Dynamic> MatrixXint;
 
 void ginac_function_to_file(GiNaC::ex *e,const int& dim);
 
-namespace mstom {
+//namespace SymReach {
 
 	Eigen::MatrixXd unitNorm(Eigen::MatrixXd& Min, int m);
 		// returns unitNorm columnwise(m=1) or rowwise(m=2)
@@ -74,7 +72,7 @@ namespace mstom {
     zonotope operator * (const Eigen::MatrixXd& M, const zonotope& Z);
 
     // vector<interval> to zonotope
-    mstom::zonotope vecIntToZono(std::vector<vnodelp::interval> Kprime);
+    SymReach::zonotope vecIntToZono(std::vector<SymReach::interval> Kprime);
 
     class intervalMatrix{
     public:
@@ -146,14 +144,14 @@ namespace mstom {
     void plotfilled(const std::vector<zonotope>& Zv, const int& a1, const int& a2);
         // a1, a2 : dimensions to plot
 
-	std::vector<double> project(const std::vector<mstom::zonotope>& Zv, const int& a);
+	std::vector<double> project(const std::vector<SymReach::zonotope>& Zv, const int& a);
         // project on to the dimension a(begins from 1); returns the end points of the line segment
 
 	std::vector<std::pair<double, double>> vertices(const std::vector<double>& ve, const double& tau, const double& k);
 		// for plot w.r.t. time. Returns vertices of a rectangle of time width tau
 		//k = the time instant
 
-	void plotfilled(const std::vector<std::vector<mstom::zonotope>>& Ztp, const int& a1, const double& tau);
+	void plotfilled(const std::vector<std::vector<SymReach::zonotope>>& Ztp, const int& a1, const double& tau);
         // a1 : dimension to plot w.r.t. time
 
     void plot(const std::vector<zonotope>& Zv, const int& a1, const int& a2, bool tb);
@@ -177,15 +175,15 @@ namespace mstom {
 		//Eigen::IOFormat LightFmt(Eigen::StreamPrecision, 0, " ", "\n", "", " ", "[", "]");
 		//flag: 1(write), 2(append)
 
-	void wfile(const std::vector<std::vector<mstom::zonotope>>& Zti);
+	void wfile(const std::vector<std::vector<SymReach::zonotope>>& Zti);
 		// to plot with MATLAB
 
-	void wfile_gnuplot(std::vector<std::vector<mstom::zonotope>>& Zti);
+	void wfile_gnuplot(std::vector<std::vector<SymReach::zonotope>>& Zti);
 
-	void wfile_time(std::vector<std::vector<mstom::zonotope>>& Zti, int a1, double tau);
+	void wfile_time(std::vector<std::vector<SymReach::zonotope>>& Zti, int a1, double tau);
 		// to plot one dimension vs time with MATLAB
 
-} // end namespace mstom
+
 
 //#############################################################################
 // Derivative Hessian
@@ -194,44 +192,44 @@ void computeJacobian(double A[], const Eigen::VectorXd& x_bar, Eigen::VectorXd u
 
 
 template<typename Fu>
-void computeJacobian_Lu_array(vnodelp::interval xin[], Fu u[], Eigen::MatrixXd& L,const int dim);
+void computeJacobian_Lu_array(SymReach::interval xin[], Fu u[], Eigen::MatrixXd& L,const int dim);
     // using arrays
     // jacobian for L(u) for growth bound
 
 template<typename Fu>
-void computeJacobian_Lu_array2(vnodelp::interval xin[], Fu u[], const int dim, int jin, double* LuStore);
+void computeJacobian_Lu_array2(SymReach::interval xin[], Fu u[], const int dim, int jin, double* LuStore);
     // without eigen::matrix
     //  using arrays
     // jacobian for L(u) for growth bound
 
 template<typename T2>
-void compute_J_abs_max(const mstom::intervalMatrix& iM, Eigen::MatrixXd J_abs_max[], T2 u);
+void compute_J_abs_max(const SymReach::intervalMatrix& iM, Eigen::MatrixXd J_abs_max[], T2 u);
 
-// void compute_H(const mstom::intervalMatrix& iM, std::vector<vnodelp::iMatrix>& H, Eigen::VectorXd uin);
+// void compute_H(const SymReach::intervalMatrix& iM, std::vector<SymReach::iMatrix>& H, Eigen::VectorXd uin);
 
-Eigen::MatrixXd pMatrix_to_MatrixXd(vnodelp::pMatrix pM);
+Eigen::MatrixXd pMatrix_to_MatrixXd(SymReach::pMatrix pM);
 
-Eigen::VectorXd pV_to_V(vnodelp::pVector pV);
+Eigen::VectorXd pV_to_V(SymReach::pVector pV);
 
-mstom::zonotope compute_quad(mstom::zonotope Z, std::vector<Eigen::MatrixXd> H_mid);
+SymReach::zonotope compute_quad(SymReach::zonotope Z, std::vector<Eigen::MatrixXd> H_mid);
 
-Eigen::VectorXd maxAbs(const mstom::intervalMatrix& IH);
+Eigen::VectorXd maxAbs(const SymReach::intervalMatrix& IH);
 
-// Eigen::VectorXd compute_L_Hat1(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd uin);
+// Eigen::VectorXd compute_L_Hat1(SymReach::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd uin);
 
-Eigen::VectorXd compute_L_Hat3(std::vector<vnodelp::interval> Kprime, std::vector<vnodelp::interval> uin);
+Eigen::VectorXd compute_L_Hat3(std::vector<SymReach::interval> Kprime, std::vector<SymReach::interval> uin);
     // global L_hat computation
 
-mstom::zonotope compute_L_Hat2(mstom::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd u);
+SymReach::zonotope compute_L_Hat2(SymReach::zonotope Rtotal1, Eigen::VectorXd x_bar, int state_dim, Eigen::VectorXd u);
     // 2nd L_hat computation method (less interval arithmatic)
 
-// mstom::zonotope compute_Rerr_bar(int state_dim, mstom::intervalMatrix& Data_interm, mstom::zonotope& Rhomt, Eigen::VectorXd x_bar,
-		// Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, mstom::intervalMatrix& F_tilde,
+// SymReach::zonotope compute_Rerr_bar(int state_dim, SymReach::intervalMatrix& Data_interm, SymReach::zonotope& Rhomt, Eigen::VectorXd x_bar,
+		// Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, SymReach::intervalMatrix& F_tilde,
 		// Eigen::VectorXd& L_max, int& nr, double& perfInd);
 	// nr tells if split needed
 	// updates: nr, perfInd, Rhomt
 
-mstom::zonotope compute_L_hatB(int state_dim, Eigen::VectorXd& x_bar, mstom::zonotope& Z0, mstom::zonotope& exprAX0, double r, Eigen::VectorXd& fAx_bar,double Datab, double Datac, double Datad, int LinErrorMethod, Eigen::VectorXd& L_hat, Eigen::VectorXd u);
+SymReach::zonotope compute_L_hatB(int state_dim, Eigen::VectorXd& x_bar, SymReach::zonotope& Z0, SymReach::zonotope& exprAX0, double r, Eigen::VectorXd& fAx_bar,double Datab, double Datac, double Datad, int LinErrorMethod, Eigen::VectorXd& L_hat, Eigen::VectorXd u);
     // Guernic Girard
 
 //----------------------------------------------------------------------------------------
@@ -240,17 +238,17 @@ mstom::zonotope compute_L_hatB(int state_dim, Eigen::VectorXd& x_bar, mstom::zon
 
 
 
-void splitz(mstom::zonotope& Z0in, mstom::zonotope& Z01, mstom::zonotope& Z02, int mIndex);
+void splitz(SymReach::zonotope& Z0in, SymReach::zonotope& Z01, SymReach::zonotope& Z02, int mIndex);
 	// splitted sets returned in Z01 and Z02; split along dimension mIndex by first taking interval hull
 
-void splitz2(const mstom::zonotope& Z0in, mstom::zonotope& Z01, mstom::zonotope& Z02,
+void splitz2(const SymReach::zonotope& Z0in, SymReach::zonotope& Z01, SymReach::zonotope& Z02,
 				int mIndex);
 
 template<class state_type>
 Eigen::VectorXd computeM(double tau, state_type lower_left, state_type upper_right, state_type inp_lower_left, state_type inp_upper_right);
 
 
-int computeKprime(double tau, vnodelp::interval* xin,  vnodelp::interval u[], int dim, vnodelp::interval* Kbprime, int KprimeLimit, vnodelp::interval* x_initial);
+int computeKprime(double tau, SymReach::interval* xin,  SymReach::interval u[], int dim, SymReach::interval* Kbprime, int KprimeLimit, SymReach::interval* x_initial);
 
 template<class Lugbx, class Lugbu>
 void computeLu(Lugbx xin, Lugbu uin, Lugbx rin, double tau_in, int dim, int dimInput, double* Lu);
@@ -267,18 +265,18 @@ void LuOverSS_array2(Lugbx& lower_left, Lugbx& upper_right, Lugbu& uin, int& dim
     // using arrays
 
 // template<class CL>
-// double one_iteration(mstom::zonotope Z0, Eigen::VectorXd u, int state_dim, double r, int& p, Eigen::VectorXd L_max,
-		// std::vector<mstom::zonotope>& stora, std::vector<mstom::zonotope>& Zti_stora, int& count1, int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
+// double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, double r, int& p, Eigen::VectorXd L_max,
+		// std::vector<SymReach::zonotope>& stora, std::vector<SymReach::zonotope>& Zti_stora, int& count1, int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
 		// int recur, int morder);
 
 // template<class CL>
-// std::vector<mstom::zonotope> one_iteration_s(std::vector<mstom::zonotope> Z0, Eigen::VectorXd u,
+// std::vector<SymReach::zonotope> one_iteration_s(std::vector<SymReach::zonotope> Z0, Eigen::VectorXd u,
 				// int state_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
 				// int LinErrorMethod, CL& L_hat_storage, const Eigen::VectorXd& ss_eta,
-				// int morder, std::vector<mstom::zonotope>& Zti);
+				// int morder, std::vector<SymReach::zonotope>& Zti);
 
-// int ReachableSet(const int dim, const int dimInput, double tau, double rr[], double x[], double uu[], int no_of_steps, int LinErrorMethod, double l_bar, int morder, int taylorTerms, std::vector<std::vector<mstom::zonotope>>& Zti, mstom::zonotope& Z0);
+// int ReachableSet(const int dim, const int dimInput, double tau, double rr[], double x[], double uu[], int no_of_steps, int LinErrorMethod, double l_bar, int morder, int taylorTerms, std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0);
 
-
+} // end namespace SymReach
 
 #endif /* REACHABLESET2_H_ */

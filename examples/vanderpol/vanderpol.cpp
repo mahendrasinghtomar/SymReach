@@ -7,25 +7,21 @@
 
 #include "ReachableSet2.h"
 #include "ReachableSet2cpp.h"
-#include <iostream>
-#include <array>
+#include <iostream> 
+#include <array> 
 #include <cmath>
-
-using namespace GiNaC; 
 
 const int state_dim = 2;
 const int input_dim = 0;
-template<typename Tx, typename Tu>
-Tx funcLj_system(Tx x, Tu u, Tx xx){
+template<typename Tx, typename Tu, typename Txx>
+Txx funcLj_system(Tx& x, Tu& u, Txx& xx){
     xx[0] = x[1];
     xx[1] = x[1] - x[0] - x[0]*x[0]*x[1];
-    return xx;
+    return xx;   
 }
-symbol x0("x[0]"), x1("x[1]");
-std::vector<symbol> xs{x0, x1};	// x_symbol
-std::vector<symbol> us;
-std::vector<ex> f{xs[1],
-					(xs[1] - xs[0] - xs[0]*xs[0]*xs[1])};
+GiNaC::symbol x0("x[0]"), x1("x[1]");
+std::vector<GiNaC::symbol> xs{x0, x1};	// x_symbol
+std::vector<GiNaC::symbol> us;
 
 int main() {
 	char ask = 'y';
@@ -54,31 +50,31 @@ int main() {
 	}
 		int no_of_steps = finaltime/tau;
 		no_of_steps = (no_of_steps != finaltime/tau) ? ((finaltime/tau)+1) : (finaltime/tau);
-		std::vector<std::vector<mstom::zonotope>> Zti(no_of_steps);
-		mstom::zonotope Z0;
+		std::vector<std::vector<SymReach::zonotope>> Zti(no_of_steps);
+		SymReach::zonotope Z0;
 
 		TicToc reachtime;
 		reachtime.tic();
-		ReachableSet(state_dim, input_dim, tau, r, x, ru, u, no_of_steps, 1, l_max, morder, taylorTerms, Zti, Z0);
+		SymReach::ReachableSet(state_dim, input_dim, tau, r, x, ru, u, no_of_steps, 1, l_max, morder, taylorTerms, Zti, Z0);
 		reachtime.toc();
 
 		//<-----------Plot and file write
 		int plotorder = 3;
-		std::vector<mstom::zonotope> PlotStorage;
-		mstom::reduce(Zti[0], plotorder); // reduces zonotope order
+		std::vector<SymReach::zonotope> PlotStorage;
+		SymReach::reduce(Zti[0], plotorder); // reduces zonotope order
 		PlotStorage = Zti[0];
 		for(unsigned int i=1;i<Zti.size();i++)
 		{
-				Zti[i] = project(Zti[i], 1, 2);	// projection along dimension 1 and 2
+				Zti[i] = SymReach::project(Zti[i], 1, 2);	// projection along dimension 1 and 2
 				// now Zti has 2D zonotopes
-				mstom::reduce(Zti[i], plotorder);
+				SymReach::reduce(Zti[i], plotorder);
 				PlotStorage.insert(PlotStorage.end(),Zti[i].begin(), Zti[i].end());
 		}
-		mstom::plotstore(PlotStorage, project(Z0, 1, 2));
+		SymReach::plotstore(PlotStorage, project(Z0, 1, 2));
 		std::cout << "Writing File" << std::endl;
-		wfile(Zti);
+		SymReach::wfile(Zti);
 		std::cout << "Plotting" << std::endl;
-		plotfilled(PlotStorage, 1, 2); // plots x1 vs x2 
+		SymReach::plotfilled(PlotStorage, 1, 2); // plots x1 vs x2 
 		//------------<
 
 		std::cout << "Do you want to try another tau and finaltime?(y,n):";
