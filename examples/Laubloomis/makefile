@@ -1,3 +1,4 @@
+# CC  = clang++
 CC       	  = g++
 # CXXFLAGS 		= -Wall -Wextra -O3
 CXXFLAGS 		= -O3

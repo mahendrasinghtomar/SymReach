@@ -1498,7 +1498,7 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 	// }
 	
     SymReach::zonotope Z01, Z02;
-    if(nr == -2 && recur == 1) // split needed
+    if(nr == -2 && recur == 1) // split needed. (recur == 0) => (return perfInd, no further splits)
     {
 		std::cout << "###########  Split  #############";
 
@@ -1540,6 +1540,11 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 		Z02 = Zsplit2[sel_index];
 		//plot(Z01,1,2);
 		//plot(Z02,1,2);
+		
+		msdf
+		
+		
+		
 
 		if(perfInd_split[sel_index]/perftemp2[sel_index] < 1 && perftemp2[sel_index] < 1)
 		{
@@ -1650,7 +1655,7 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
 			for(int k=0;k<dimHess;k++)
 				HessianB[i*dimHess*dimHess + j*dimHess + k] = JacobianHtemp[i*dimHess+j].diff(xs[k]);
 	ginac_function_to_file(HessianB, dimHess, dim);
-//    system("g++ -shared func_from_file.cpp -o func_from_file.so");
+  // system("clang++ -shared func_from_file.cpp -o func_from_file.so");
     system("g++ -shared func_from_file.cpp -o func_from_file.so");
     
     using std::cout;
@@ -1705,7 +1710,7 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
     // std::cout << "r, finaltime, no of steps = " << r << ","
     		// << finaltime << "," << no_of_steps << std::endl;
 
-				std::cout << 4 << "\n";
+				// std::cout << 4 << "\n";
 
 			
     for(int i=0;i<no_of_steps;i++)
