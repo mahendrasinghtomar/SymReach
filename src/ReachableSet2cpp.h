@@ -1500,7 +1500,7 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
     SymReach::zonotope Z01, Z02;
     if(nr == -2 && recur == 1) // split needed. (recur == 0) => (return perfInd, no further splits)
     {
-		std::cout << "###########  Split  #############";
+		std::cout << "###########  Split  #############\n" ;
 
 		// int number_split = state_dim;
 		int number_split = Z0.generators.cols();
@@ -1533,20 +1533,24 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 		auto r_iterat = std::min_element(perfInd_split.begin(), perfInd_split.end());
 		int sel_index = r_iterat - perfInd_split.begin();
 
-		std::cout << " psel= " << perfInd_split[sel_index]
-			<<", p1= " <<perfInd_split[sel_index]/perftemp2[sel_index]<<", p2= "<<perftemp2[sel_index]<<std::endl;
+		// std::cout << " psel= " << perfInd_split[sel_index]
+			// <<", p1= " <<perfInd_split[sel_index]/perftemp2[sel_index]<<", p2= "<<perftemp2[sel_index]<<std::endl;
 
         Z01 = Zsplit1[sel_index];
 		Z02 = Zsplit2[sel_index];
 		//plot(Z01,1,2);
 		//plot(Z02,1,2);
 		
-		msdf
+		// std::cout << std::endl << "perftemp2: " ;
+		// for(int i=0; i<number_split; i++)
+			// std::cout << perftemp2[i] << ", ";
+		// std::cout << "---------" << std::endl;
+		// std::cin.get();
 		
 		
 		
 
-		if(perfInd_split[sel_index]/perftemp2[sel_index] < 1 && perftemp2[sel_index] < 1)
+		if((PERFINDS==1 and perfInd_split[sel_index] < 1) or (PERFINDS==2 && perfInd_split[sel_index]/perftemp2[sel_index] < 1 && perftemp2[sel_index] < 1))
 		{
 			if(stora.size()==0)
 			{
