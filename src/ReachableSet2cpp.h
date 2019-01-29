@@ -47,6 +47,10 @@ extern std::vector<GiNaC::symbol> us;
 int PERFINDS = 1;
 
 namespace SymReach{
+	
+	int state_dim;
+	int input_dim;
+	
 	typedef boost::numeric::interval<double> interval;
 
 	double sup(interval& I){
@@ -440,7 +444,7 @@ namespace SymReach {
 
     void matrix_exponential(const MatrixXld& A, const double r, const int& p, intervalMatrix& Er, std::vector<MatrixXld>& Apower){
         // Apower and Er updated
-        unsigned int state_dim = A.rows();
+        // unsigned int state_dim = A.rows();
 		std::vector<MatrixXld> Apower_abs(p+1);
 		MatrixXld M = MatrixXld::Identity(state_dim,state_dim);
 		Apower_abs[0] = A.cwiseAbs();
@@ -464,7 +468,7 @@ namespace SymReach {
     }
 
     intervalMatrix compute_F(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower){
-        unsigned int state_dim = A.rows();
+        // unsigned int state_dim = A.rows();
         intervalMatrix Asum;
         Asum.ub = MatrixXld::Zero(state_dim, state_dim);
         Asum.lb = MatrixXld::Zero(state_dim, state_dim);
@@ -502,7 +506,7 @@ namespace SymReach {
     }
 
     intervalMatrix compute_F_tilde(const int& p, const double& r, const MatrixXld& A, const intervalMatrix& Er, const std::vector<MatrixXld>& Apower, int isOriginContained=0){
-        unsigned int state_dim = A.rows();
+        // unsigned int state_dim = A.rows();
         intervalMatrix Asum;
         Asum.ub = MatrixXld::Zero(state_dim,state_dim);
         Asum.lb = MatrixXld::Zero(state_dim,state_dim);
@@ -544,7 +548,7 @@ namespace SymReach {
     }
 
     intervalMatrix compute_Data_interm(const intervalMatrix& Er, const double& r, const int& p, const MatrixXld& A, const std::vector<MatrixXld>& Apower){
-        unsigned int state_dim = A.rows();
+        // unsigned int state_dim = A.rows();
 		MatrixXld Asum = r * MatrixXld::Identity(state_dim,state_dim);
 		//int fac = 2;
 		for(int i=1;i<=p;i++)
@@ -1266,7 +1270,7 @@ SymReach::zonotope compute_L_Hat2(SymReach::zonotope Rtotal1, Eigen::VectorXd x_
     return error;
 }
 
-SymReach::zonotope compute_Rerr_bar(int state_dim, int input_dim, SymReach::intervalMatrix& Data_interm, SymReach::zonotope& Rhomt, Eigen::VectorXd x_bar,
+SymReach::zonotope compute_Rerr_bar(int& state_dim, int& input_dim, SymReach::intervalMatrix& Data_interm, SymReach::zonotope& Rhomt, Eigen::VectorXd x_bar,
 		Eigen::VectorXd f_bar, Eigen::VectorXd u, Eigen::VectorXd& L_hat, int LinErrorMethod, SymReach::intervalMatrix& F_tilde,
 		Eigen::VectorXd& L_max, int& nr, double& perfInd, SymReach::zonotope& delta_u){
 	// nr tells if split needed
@@ -1370,7 +1374,7 @@ void splitz2(const SymReach::zonotope& Z0in, SymReach::zonotope& Z01, SymReach::
 
 
 
-double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, int input_dim, double r, int& p, Eigen::VectorXd L_max,
+double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, double r, int& p, Eigen::VectorXd L_max,
 		std::vector<SymReach::zonotope>& stora, std::vector<SymReach::zonotope>& Zti_stora, int& count1, int LinErrorMethod, const Eigen::VectorXd& ss_eta,
 		int recur, int morder, GiNaC::ex *JacobianB, GiNaC::ex *HessianB, double ru[],  GiNaC::ex *JacobianBu)
 {
@@ -1520,11 +1524,11 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 			// splitz(Z0, Zsplit1[i], Zsplit2[i], i);	// split along state_dim
 			splitz2(Z0, Zsplit1[i], Zsplit2[i], i); // split along ith generator
 			double perftemp;
-			perftemp = one_iteration(Zsplit1[i], u, state_dim, input_dim, r, p, L_max, split_stora1[i], split_Zti1[i],
+			perftemp = one_iteration(Zsplit1[i], u, r, p, L_max, split_stora1[i], split_Zti1[i],
 									count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB, ru, JacobianBu);
 			if(PERFINDS==2)
 			{
-				perftemp2[i] = one_iteration(Zsplit2[i], u, state_dim, input_dim, r, p, L_max, split_stora2[i], split_Zti2[i],
+				perftemp2[i] = one_iteration(Zsplit2[i], u, r, p, L_max, split_stora2[i], split_Zti2[i],
 											count1, LinErrorMethod, ss_eta, 0, morder, JacobianB, HessianB, ru, JacobianBu);
 				perftemp = perftemp * perftemp2[i];
 			}
@@ -1577,15 +1581,16 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 			if(PERFINDS==1)
 			{
 			std::vector<SymReach::zonotope> split_sto2, split_Ztio2;
-			one_iteration(Z02, u, state_dim, input_dim, r, p, L_max, split_sto2, split_Ztio2, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
+			one_iteration(Z02, u, r, p, L_max, split_sto2, split_Ztio2, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
 			stora.insert(stora.end(), split_sto2.begin(), split_sto2.end());
 			Zti_stora.insert(Zti_stora.end(), split_Ztio2.begin(), split_Ztio2.end());
 			}
 		}
 		else
 		{
-			one_iteration(Z01, u, state_dim, input_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
-			one_iteration(Z02, u, state_dim, input_dim, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
+			// to edit: split as we already know that the split is needed.
+			one_iteration(Z01, u, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
+			one_iteration(Z02, u, r, p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, 1, morder, JacobianB, HessianB, ru, JacobianBu);
 		}
     }
 
@@ -1593,7 +1598,7 @@ double one_iteration(SymReach::zonotope Z0, Eigen::VectorXd u, int state_dim, in
 }
 
 std::vector<SymReach::zonotope> one_iteration_s(std::vector<SymReach::zonotope> Z0, Eigen::VectorXd u,
-				int state_dim, int input_dim, double r, int& p, Eigen::VectorXd L_max, int& count1,
+				double r, int& p, Eigen::VectorXd L_max, int& count1,
 				int LinErrorMethod, const Eigen::VectorXd& ss_eta,
 				int morder, std::vector<SymReach::zonotope>& Zti, GiNaC::ex *JacobianB, GiNaC::ex *HessianB, double ru[],  GiNaC::ex *JacobianBu)
 {
@@ -1603,7 +1608,7 @@ std::vector<SymReach::zonotope> one_iteration_s(std::vector<SymReach::zonotope> 
 		int recur = 1;	// 1 (keep on iterating for reachable set), 0 (return perfInd, no further splits)
 		std::vector<SymReach::zonotope> stora;
 		std::vector<SymReach::zonotope> Zti_stora;
-		one_iteration(Z0[i],u,state_dim, input_dim, r,p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, recur, morder, JacobianB, HessianB, ru, JacobianBu);	// reachable sets returned in stora
+		one_iteration(Z0[i],u, r,p, L_max, stora, Zti_stora, count1, LinErrorMethod, ss_eta, recur, morder, JacobianB, HessianB, ru, JacobianBu);	// reachable sets returned in stora
 		if(i==0)
 		{
 			Zoutput = stora;
@@ -1622,6 +1627,9 @@ std::vector<SymReach::zonotope> one_iteration_s(std::vector<SymReach::zonotope> 
 int ReachableSet(const int dim, const int dimInput, double tau, double rr[], double x[], double ru[], double uu[], int no_of_steps, int LinErrorMethod, double l_bar, int morder, int taylorTerms, 
 std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
 {
+	state_dim = dim;
+	input_dim = dimInput;
+	
 	std::vector<GiNaC::ex> f(dim);
 	funcLj_system(xs, us, f);
 	GiNaC::ex *JacobianB = new GiNaC::ex[dim*dim];
@@ -1684,8 +1692,8 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
     // appliedError = 1.02 * trueError for both Rerr_bar and L_hatB
     // appliedError begins with _0_ for Rerr_bar
 
-    int state_dim = dim;
-    int input_dim = dimInput;
+    // int state_dim = dim;
+    // int input_dim = dimInput;
     double r = tau;    //sampling period = r
 
     Eigen::VectorXd L_max(state_dim);
@@ -1720,7 +1728,7 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
     for(int i=0;i<no_of_steps;i++)
     {
         int count1 = 0;
-        Zn = one_iteration_s(Zn, u, state_dim, input_dim, r, p, L_max, count1,
+        Zn = one_iteration_s(Zn, u, r, p, L_max, count1,
 							LinErrorMethod, ss_eta, morder, Zti[i], JacobianB, HessianB, ru, JacobianBu);
 			Ztp[i] = Zn;
 
