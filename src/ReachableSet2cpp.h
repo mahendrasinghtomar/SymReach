@@ -1658,7 +1658,7 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
 		// Now xs = zs
 		JacobianHtemp = new GiNaC::ex[dim*dimHess];
 		for(int i=0;i<dim;i++)
-			for(int j=0;j<dim;j++)
+			for(int j=0;j<dimHess;j++)
 				JacobianHtemp[i*dimHess+j] = f[i].diff(xs[j]);
 	}
 	GiNaC::ex *HessianB = new GiNaC::ex[dim*dimHess*dimHess];
@@ -1667,8 +1667,12 @@ std::vector<std::vector<SymReach::zonotope>>& Zti, SymReach::zonotope& Z0)
 			for(int k=0;k<dimHess;k++)
 				HessianB[i*dimHess*dimHess + j*dimHess + k] = JacobianHtemp[i*dimHess+j].diff(xs[k]);
 	ginac_function_to_file(HessianB, dimHess, dim);
-  // system("clang++ -shared func_from_file.cpp -o func_from_file.so");
-    system("g++ -shared func_from_file.cpp -o func_from_file.so");
+//    std::cout << "Is sytem windows (y) or mac (n) ? [y/n]: " << std::endl;
+//    std::string str_compiler, temp_compil;
+//    std::cin >> temp_compil;
+//    str_compiler = (temp_compil == "y") ? "g++" : "clang++" ;
+//    system("g++ -shared func_from_file.cpp -o func_from_file.so");
+    system("clang++ -shared func_from_file.cpp -o func_from_file.so");
     
     using std::cout;
     using std::cerr;

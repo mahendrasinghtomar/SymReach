@@ -56,7 +56,7 @@ namespace SymReach{
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXld;
 //typedef Eigen::Matrix<SymReach::interval,Eigen::Dynamic,Eigen::Dynamic> MatrixXint;
 
-void ginac_function_to_file(GiNaC::ex *e,const int& dim);
+//void ginac_function_to_file(GiNaC::ex *e,const int& dim);
 
 //namespace SymReach {
 
