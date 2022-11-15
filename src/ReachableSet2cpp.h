@@ -1,3 +1,11 @@
+/*
+* From: https://github.com/mahendrasinghtomar/SymReach/blob/master/src/ReachableSet2cpp.h
+*
+* Publication: Fabian Immler, Matthias Althoff,[et al, including Mahendra Singh Tomar], ``ARCH-COMP18 Category Report: Continuous and Hybrid Systems with Nonlinear Dynamics" 2018 ARCH18. 5th International Workshop on Applied Verification of Continuous and Hybrid Systems  https://easychair.org/publications/open/gjfh
+*
+* https://github.com/mahendrasinghtomar
+*/
+
 /* 					line 1654 system(g++,...)
  * ReachableSet2.cpp
  *
