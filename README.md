@@ -13,3 +13,5 @@ If compiler else than g++ then please edit ReachableSet2cpp.h: line 1654
         
        system("g++ -shared func_from_file.cpp -o func_from_file.so");
 to adjust compiler.
+
+Publication: https://easychair.org/publications/open/gjfh
