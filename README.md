@@ -1,4 +1,7 @@
 # SymReach
+**It is a C++ tool for the computation of over-approximation of reachable sets of continuous time nonlinear systems.**
+---
+
 Additionally Requires:
 
     Gnuplot: http://gnuplot.info/
